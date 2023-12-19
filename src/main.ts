@@ -24,7 +24,8 @@ export default class ColorTextPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		const markdownView =
+			this.app.workspace.getActiveViewOfType(MarkdownView);
 
 		const htmlWrapperStart = '<font style="color:0BDA51">';
 		const htmlWrapperEnd = "</font>";
@@ -32,15 +33,18 @@ export default class ColorTextPlugin extends Plugin {
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
 			"palette",
-			"Sample Plugin",
+			"Color Text Plugin",
 			(evt: MouseEvent) => {
 				// Called when the user clicks the icon.
 				new Notice("This is a notice!");
-				if (view) {
-					const selection = view.editor.getSelection();
-					view.editor.replaceSelection(
-						htmlWrapperStart + selection + htmlWrapperEnd
-					);
+				if (markdownView) {
+					const colorModal = new ColorModal(this.app);
+					colorModal.open();
+					// Wait for color modal close or maybe just when user submits a color
+					// const selection = markdownView.editor.getSelection();
+					// markdownView.editor.replaceSelection(
+					// 	htmlWrapperStart + selection + htmlWrapperEnd
+					// );
 				}
 			}
 		);
@@ -69,24 +73,25 @@ export default class ColorTextPlugin extends Plugin {
 				editor.replaceSelection("Color text Command");
 			},
 		});
+
 		// This adds a complex command that can check whether the current state of the app allows execution of the command
 		this.addCommand({
 			id: "open-sample-modal-complex",
 			name: "Open sample modal (complex)",
 			checkCallback: (checking: boolean) => {
 				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
+				// const markdownView =
+				// 	this.app.workspace.getActiveViewOfType(MarkdownView);
+				// if (markdownView) {
+				// 	// If checking is true, we're simply "checking" if the command can be run.
+				// 	// If checking is false, then we want to actually perform the operation.
+				// 	if (!checking) {
+				new SampleModal(this.app).open();
+				// 	}
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
+				// 	// This command will only show up in Command Palette when the check function returns true
+				// 	return true;
+				// }
 			},
 		});
 
@@ -133,6 +138,43 @@ class SampleModal extends Modal {
 	onClose() {
 		const { contentEl } = this;
 		contentEl.empty();
+	}
+}
+
+class ColorModal extends Modal {
+	constructor(app: App) {
+		super(app);
+	}
+
+	onOpen() {
+		const { contentEl } = this;
+		contentEl.createEl("h1", { text: "Enter Hex Color" });
+
+		const colorPicker = contentEl.createEl("input", { type: "color" });
+		colorPicker.name = "colorPicker";
+	}
+
+	onClose() {
+		const { contentEl } = this;
+		const inputs = contentEl.getElementsByTagName("input");
+		const colorPicker = inputs.namedItem("colorPicker");
+
+		contentEl.empty();
+		if (colorPicker) {
+			const markdownView =
+				this.app.workspace.getActiveViewOfType(MarkdownView);
+			if (markdownView) {
+				// Wait for color modal close or maybe just when user submits a color
+				console.log(colorPicker.value);
+				const htmlWrapperStart =
+					'<font style="color:' + colorPicker.value + '">';
+				const htmlWrapperEnd = "</font>";
+				const selection = markdownView.editor.getSelection();
+				markdownView.editor.replaceSelection(
+					htmlWrapperStart + selection + htmlWrapperEnd
+				);
+			}
+		}
 	}
 }
 
