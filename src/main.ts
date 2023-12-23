@@ -193,7 +193,6 @@ class ColorModal extends Modal {
 				markdownView.editor.replaceSelection(
 					htmlWrapperStart + selectionBody + htmlWrapperEnd
 				);
-				markdownView.
 			}
 		}
 	}
