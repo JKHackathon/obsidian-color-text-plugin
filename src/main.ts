@@ -166,13 +166,34 @@ class ColorModal extends Modal {
 			if (markdownView) {
 				// Wait for color modal close or maybe just when user submits a color
 				console.log(colorPicker.value);
+				// TODO: Use span instead of font
 				const htmlWrapperStart =
-					'<font style="color:' + colorPicker.value + '">';
-				const htmlWrapperEnd = "</font>";
+					'<span name="!pickedColor" style="color:' +
+					colorPicker.value +
+					'">';
+				const htmlWrapperEnd = "</span>";
 				const selection = markdownView.editor.getSelection();
+
+				let selectionBody = selection;
+
+				// If there already exists a color wrapper (oof probably should not be coloring any formatting)
+				if (selection.contains("!pickedColor")) {
+					const htmlFontStartPos = selection.indexOf("<span"); //Probably unnecessary, but just to be safe?
+					const htmlFontEndPos = selection.indexOf(
+						">",
+						htmlFontStartPos
+					);
+					const htmlWrapperEndPos = selection.indexOf("</span>");
+					selectionBody = selection.substring(
+						htmlFontEndPos + 1,
+						htmlWrapperEndPos
+					);
+				}
+
 				markdownView.editor.replaceSelection(
-					htmlWrapperStart + selection + htmlWrapperEnd
+					htmlWrapperStart + selectionBody + htmlWrapperEnd
 				);
+				markdownView.
 			}
 		}
 	}
